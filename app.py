@@ -262,7 +262,7 @@ try:
             f'var dataPoints = {json.dumps(data_points)};'
         )
         map_html = map_html.replace(
-            'var overlayMode = {{ overlay_mode }};',
+            '{{ overlay_mode }}',
             f'"{overlay_mode_value}"'
         )
         map_html = map_html.replace(
@@ -468,6 +468,7 @@ with col_right:
         selected_label = st.selectbox("Select a prioritized zone to inspect:", list(zone_options.keys()))
         if selected_label:
             selected_zone = zone_options.get(selected_label)
+            st.session_state['selected_zone'] = selected_zone
             zone_row = hour_data[hour_data['h3_cell'] == selected_zone].iloc[0]
             location_name = zone_row.get('location', selected_zone)
 
@@ -793,58 +794,52 @@ else:  # Flipkart Mode
     else:
         st.info("No data available.")
 
-# -----------------------------------------------------------------------------
-# FOOTER
-# -----------------------------------------------------------------------------
-st.markdown("---")
-st.caption("GridLock Zero (c) 2026 | Built for Flipkart GridLock Hackathon | Powered by BTP Data")
-
-# -----------------------------------------------------------------------------
-# DEBUG INFO
-# -----------------------------------------------------------------------------
-with st.sidebar.expander("System Status", expanded=False):
-    st.caption(f"CCIS records: {len(ccis_df):,}")
-    st.caption(f"Clustered records: {len(clustered_df):,}")
-    st.caption(f"Current hour: {hour}:00")
-    st.caption(f"Persona: {persona}")
-    st.caption("Data files loaded successfully." if not ccis_df.empty else "No data loaded.")
-    if not ccis_df.empty:
-        st.caption(f"CCIS columns: {list(ccis_df.columns)}")
-
 # --- PREDICTIVE WHAT-IF SIMULATOR INTERFACE SECTION ---
 st.markdown("---")
 st.subheader("\U0001F9EA Strategic Optimization Sandbox Simulator")
 
 sim_col1, sim_col2 = st.columns([1, 2])
 
+if not hour_data.empty:
+    if 'priority_score' not in hour_data.columns:
+        hour_data['priority_score'] = (hour_data['ccis'] * 0.7) + (hour_data.get('violation_count', 0) * 0.3)
+    sorted_zones = hour_data.sort_values(by='priority_score', ascending=False)
+    
+    active_cell = st.session_state.get('selected_zone')
+    if not active_cell or active_cell not in hour_data['h3_cell'].values:
+        active_cell = sorted_zones['h3_cell'].iloc[0]
+        
+    active_row = hour_data[hour_data['h3_cell'] == active_cell].iloc[0]
+    active_location = active_row.get('location', active_cell)
+else:
+    active_cell = "Global Node"
+    active_location = "Global Node"
+
 with sim_col1:
-    st.caption("Adjust prospective tactical assets below:")
+    st.markdown(f"**Target Zone:** {active_location}")
+    st.caption("Adjust prospective tactical assets to model real-time impact:")
     sim_officers = st.slider("Force Size Deployment Footprint", 1, 12, 4)
     sim_duration = st.slider("Force Allocation Duration Window (Hours)", 1, 8, 3)
-    run_sim = st.button("\u25B6\ufe0f Execute Strategic Scenario Impact Modeling", use_container_width=True)
 
 with sim_col2:
-    if run_sim:
-        from models.what_if_simulator import WhatIfSimulator
+    from models.what_if_simulator import WhatIfSimulator
+    sim_engine = WhatIfSimulator(ccis_df)
+    
+    results = sim_engine.simulate_enforcement(
+        cell=active_cell,
+        hour=hour,
+        officers=sim_officers,
+        duration=sim_duration
+    )
 
-        # Initialize advanced algorithm engine with your loaded data dataframe
-        sim_engine = WhatIfSimulator(ccis_df)
+    st.success(f"\u2705 Automated Impact Projections for {active_location[:35]}... at {hour}:00")
+    c1, c2 = st.columns(2)
+    c1.metric("Projected Constraint Relief Rate", f"{results['violation_reduction_pct']}%",
+              delta="Optimization Vector")
+    c2.metric("Estimated Commuter-Hours Saved", f"{results['total_hours_saved']} Hrs")
 
-        # Grab active grid block cell from your current dataframe records mapping selection
-        active_cell = ccis_df['h3_cell'].iloc[0] if not ccis_df.empty else "Global Node"
-
-        # Feed inputs directly into your new advanced simulation algorithm
-        results = sim_engine.simulate_enforcement(
-            cell=active_cell,
-            hour=hour,
-            officers=sim_officers,
-            duration=sim_duration
-        )
-
-        st.success(f"\u2705 Impact Projections Modeled for Cell {active_cell} at {hour}:00")
-        c1, c2 = st.columns(2)
-        c1.metric("Projected Constraint Relief Rate", f"{results['violation_reduction_pct']}%",
-                  delta="Optimization Vector")
-        c2.metric("Estimated Commuter-Hours Saved", f"{results['total_hours_saved']} Hrs")
-    else:
-        st.info("\U0001F4A1 Select potential asset footprints and click execute to render forecasting analytics charts.")
+# -----------------------------------------------------------------------------
+# FOOTER
+# -----------------------------------------------------------------------------
+st.markdown("---")
+st.caption("GridLock Zero (c) 2026 | Built for Flipkart GridLock Hackathon | Powered by BTP Data")
