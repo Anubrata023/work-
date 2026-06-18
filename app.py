@@ -580,3 +580,41 @@ with st.sidebar.expander("System Status", expanded=False):
     st.caption("Data files loaded successfully." if not ccis_df.empty else "No data loaded.")
     if not ccis_df.empty:
         st.caption(f"CCIS columns: {list(ccis_df.columns)}")
+
+# --- PREDICTIVE WHAT-IF SIMULATOR INTERFACE SECTION ---
+st.markdown("---")
+st.subheader("🧪 Strategic Optimization Sandbox Simulator")
+
+sim_col1, sim_col2 = st.columns([1, 2])
+
+with sim_col1:
+    st.caption("Adjust prospective tactical assets below:")
+    sim_officers = st.slider("Force Size Deployment Footprint", 1, 12, 4)
+    sim_duration = st.slider("Force Allocation Duration Window (Hours)", 1, 8, 3)
+    run_sim = st.button("▶️ Execute Strategic Scenario Impact Modeling", use_container_width=True)
+
+with sim_col2:
+    if run_sim:
+        from models.what_if_simulator import WhatIfSimulator
+
+        # Initialize advanced algorithm engine with your loaded data dataframe
+        sim_engine = WhatIfSimulator(ccis_df)
+
+        # Grab active grid block cell from your current dataframe records mapping selection
+        active_cell = ccis_df['h3_cell'].iloc[0] if not ccis_df.empty else "Global Node"
+
+        # Feed inputs directly into your new advanced simulation algorithm
+        results = sim_engine.simulate_enforcement(
+            h3_cell=active_cell,
+            hour=hour,
+            officer_count=sim_officers,
+            duration_hours=sim_duration
+        )
+
+        st.success(f"✅ Impact Projections Modeled for Cell {active_cell} at {hour}:00")
+        c1, c2 = st.columns(2)
+        c1.metric("Projected Constraint Relief Rate", f"{results['violation_reduction_pct']}%",
+                  delta="Optimization Vector")
+        c2.metric("Estimated Commuter-Hours Saved", f"{results['total_hours_saved']} Hrs")
+    else:
+        st.info("💡 Select potential asset footprints and click execute to render forecasting analytics charts.")
