@@ -133,6 +133,15 @@ hour = st.sidebar.slider(
 
 st.sidebar.markdown("---")
 
+day_filter = st.sidebar.selectbox(
+    "Day of the Week",
+    ["All Days", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+    index=0,
+    help="Select a specific day of the week or aggregate all days to spot weekly trends."
+)
+
+st.sidebar.markdown("---")
+
 granularity = st.sidebar.selectbox(
     "Zoom Level",
     ["City View", "Zone View", "Street View"],
@@ -163,7 +172,44 @@ st.sidebar.caption(f"Records loaded: {len(ccis_df):,}")
 # -----------------------------------------------------------------------------
 # FILTER DATA
 # -----------------------------------------------------------------------------
-hour_data = ccis_df[ccis_df['hour'] == hour].copy()
+day_map = {
+    "Monday": 0, "Tuesday": 1, "Wednesday": 2, "Thursday": 3,
+    "Friday": 4, "Saturday": 5, "Sunday": 6
+}
+
+if day_filter == "All Days":
+    hour_data = ccis_df[ccis_df['hour'] == hour].copy()
+    if not hour_data.empty:
+        agg_config = {
+            'lat': 'first',
+            'lon': 'first',
+            'location': 'first'
+        }
+        if 'ccis' in hour_data.columns:
+            agg_config['ccis'] = 'mean'
+        if 'violation_count' in hour_data.columns:
+            agg_config['violation_count'] = 'mean'
+        if 'speed_drop' in hour_data.columns:
+            agg_config['speed_drop'] = 'mean'
+            
+        hour_data = hour_data.groupby('h3_cell').agg(agg_config).reset_index()
+        
+        if 'ccis' in hour_data.columns:
+            hour_data['status'] = 'green'
+            hour_data.loc[hour_data['ccis'] > 6, 'status'] = 'critical'
+            hour_data.loc[(hour_data['ccis'] > 3) & (hour_data['ccis'] <= 6), 'status'] = 'monitor'
+            color_map = {
+                'critical': '#FF4B4B',
+                'monitor': '#FFA500',
+                'green': '#00CC66'
+            }
+            hour_data['color'] = hour_data['status'].map(color_map)
+else:
+    day_val = day_map.get(day_filter, 0)
+    if 'day_of_week' in ccis_df.columns:
+        hour_data = ccis_df[(ccis_df['hour'] == hour) & (ccis_df['day_of_week'] == day_val)].copy()
+    else:
+        hour_data = ccis_df[ccis_df['hour'] == hour].copy()
 
 # -----------------------------------------------------------------------------
 # MAIN CONTENT
@@ -727,7 +773,7 @@ else:  # Flipkart Mode
             bike_std_dist_str = f"{std_distance_km:.2f} km"
 
             st.markdown("---")
-            st.subheader("\u23F1\ufe0f Google Maps-Style Travel Times")
+            st.subheader("\u23F1\ufe0f Travel Time Comparison")
 
             # Draw side-by-side travel times cards
             col_car, col_bike = st.columns(2)
