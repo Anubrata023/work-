@@ -1,3 +1,6 @@
+"""
+Route Planner using OSMnx and NetworkX
+"""
 import osmnx as ox
 import networkx as nx
 import pandas as pd
@@ -64,6 +67,56 @@ def calculate_route(G, start_lat, start_lon, end_lat, end_lon, ccis_df=None, hou
         path = nx.shortest_path(G, start_node, end_node, weight='length')
     coords = [(G.nodes[n]['y'], G.nodes[n]['x']) for n in path]
     return coords, path
+
+# -----------------------------------------------------------------------------
+# ✅ NEW FUNCTION: Get total distance of a route path
+# -----------------------------------------------------------------------------
+def get_route_distance(G, path):
+    """
+    Calculate the total distance (in meters) of a route path.
+    """
+    total_distance = 0
+    for i in range(len(path) - 1):
+        u = path[i]
+        v = path[i + 1]
+        edge_data = G.get_edge_data(u, v)
+        if edge_data:
+            # Edge data may have multiple keys (for parallel roads)
+            if 0 in edge_data:
+                total_distance += edge_data[0].get('length', 0)
+            else:
+                first_key = list(edge_data.keys())[0]
+                total_distance += edge_data[first_key].get('length', 0)
+    return total_distance
+
+def get_route_streets(G, path):
+    """
+    Get unique street names traversed by the path, maintaining order.
+    """
+    streets = []
+    for i in range(len(path) - 1):
+        u = path[i]
+        v = path[i + 1]
+        edge_data = G.get_edge_data(u, v)
+        if edge_data:
+            name = None
+            if 0 in edge_data:
+                name = edge_data[0].get('name')
+            else:
+                first_key = list(edge_data.keys())[0]
+                name = edge_data[first_key].get('name')
+            
+            if name:
+                if isinstance(name, list):
+                    streets.extend(name)
+                else:
+                    streets.append(name)
+    
+    unique_streets = []
+    for s in streets:
+        if isinstance(s, str) and s not in unique_streets:
+            unique_streets.append(s)
+    return unique_streets
 
 if __name__ == "__main__":
     G = download_bengaluru_graph()

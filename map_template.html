@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GridLock Zero - Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        #map { height: 600px; width: 100%; }
+        body { margin: 0; padding: 0; background-color: #0E1117; }
+        .legend {
+            background: #1A1C23;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            color: #DDD;
+            font-size: 13px;
+            line-height: 1.8;
+            max-width: 200px;
+        }
+        .legend-item { display: flex; align-items: center; gap: 8px; }
+        .legend-color { width: 20px; height: 20px; border-radius: 50%; }
+        .legend hr { border-color: #333; margin: 5px 0; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script>
+        // ----- INITIALIZE MAP -----
+        var map = L.map('map').setView([12.9716, 77.5946], {{ zoom_level }});
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // ----- DATA POINTS -----
+        var dataPoints = {{ data_points|safe }};
+        var overlayMode = {{ overlay_mode }};
+
+        function getViolationColor(violations) {
+            if (violations > 10) return '#FF4B4B';
+            if (violations > 4) return '#FFA500';
+            return '#00CC66';
+        }
+
+        function getColor(ccis) {
+            if (ccis > 6) return '#FF4B4B';
+            if (ccis > 3) return '#FFA500';
+            return '#00CC66';
+        }
+
+        dataPoints.forEach(function(point) {
+            var color;
+            var radius;
+            var ccis = point.ccis || 0;
+            var violations = point.violation_count || 0;
+            var speedDrop = point.speed_drop || 0;
+
+            if (overlayMode === "violations") {
+                color = getViolationColor(violations);
+                radius = 6 + Math.min(18, violations * 1.5);
+            } else if (overlayMode === "dual") {
+                color = getColor(ccis);
+                radius = 6 + Math.min(18, violations * 1.5);
+            } else { // "ccis"
+                color = getColor(ccis);
+                radius = 12;
+            }
+
+            L.circleMarker([point.lat, point.lon], {
+                radius: radius,
+                fillColor: color,
+                color: '#FFFFFF',
+                weight: 1.5,
+                fillOpacity: 0.8
+            }).addTo(map).bindPopup(
+                '<strong>\u{1F4CD} Location:</strong> ' + (point.location || 'Unknown') +
+                '<br><strong>\u{26A0}\u{FE0F} Violations:</strong> ' + violations + ' active cases' +
+                '<br><strong>\u{26A1} Speed Drop:</strong> ' + speedDrop.toFixed(1) + ' km/h reduction' +
+                '<br><strong>\u{1F4C8} CCIS Score:</strong> ' + ccis.toFixed(1)
+            );
+        });
+
+        // ----- ROUTES -----
+        var stdRoute = {{ std_route|safe }};
+        var optRoute = {{ opt_route|safe }};
+
+        // Standard route (blue, dashed)
+        if (stdRoute && stdRoute.length > 0) {
+            var stdLatLngs = stdRoute.map(function(coord) {
+                return [coord[0], coord[1]];
+            });
+            L.polyline(stdLatLngs, {
+                color: '#0066FF',
+                weight: 5,
+                opacity: 0.8,
+                dashArray: '10, 8',
+                smoothFactor: 1
+            }).addTo(map).bindPopup('🔵 Standard Route (Shortest Distance)');
+        }
+
+        // Optimized route (green, solid)
+        if (optRoute && optRoute.length > 0) {
+            var optLatLngs = optRoute.map(function(coord) {
+                return [coord[0], coord[1]];
+            });
+            L.polyline(optLatLngs, {
+                color: '#00CC66',
+                weight: 5,
+                opacity: 0.9,
+                smoothFactor: 1
+            }).addTo(map).bindPopup('🟢 Optimized Route (Avoids Congestion)');
+        }
+
+        // Start/End markers if routes exist
+        if (stdRoute && stdRoute.length > 0) {
+            var start = stdRoute[0];
+            var end = stdRoute[stdRoute.length - 1];
+            L.marker([start[0], start[1]], {
+                icon: L.divIcon({ className: 'start-marker', html: '🟢', iconSize: [20, 20] })
+            }).addTo(map).bindPopup('Start');
+            L.marker([end[0], end[1]], {
+                icon: L.divIcon({ className: 'end-marker', html: '🔴', iconSize: [20, 20] })
+            }).addTo(map).bindPopup('Destination');
+        }
+
+        // Fit bounds to routes automatically
+        var routeLatLngs = [];
+        if (optRoute && optRoute.length > 0) {
+            routeLatLngs = optRoute.map(function(coord) { return [coord[0], coord[1]]; });
+        } else if (stdRoute && stdRoute.length > 0) {
+            routeLatLngs = stdRoute.map(function(coord) { return [coord[0], coord[1]]; });
+        }
+        if (routeLatLngs.length > 0) {
+            var bounds = L.latLngBounds(routeLatLngs);
+            map.fitBounds(bounds, { padding: [50, 50] });
+        }
+
+        // ----- LEGEND -----
+        var legend = L.control({ position: 'bottomright' });
+        legend.onAdd = function() {
+            var div = L.DomUtil.create('div', 'legend');
+            var title = "<strong>Congestion Index (CCIS)</strong>";
+            var labelHigh = "Critical (CCIS > 6)";
+            var labelMid = "Monitor (CCIS 3-6)";
+            var labelLow = "Clear (CCIS < 3)";
+
+            if (overlayMode === "violations") {
+                title = "<strong>Violation Count</strong>";
+                labelHigh = "High (> 10 cases)";
+                labelMid = "Moderate (5-10 cases)";
+                labelLow = "Low (< 5 cases)";
+            } else if (overlayMode === "dual") {
+                title = "<strong>Dual Index (CCIS + Size)</strong>";
+                labelHigh = "Critical Impact (CCIS > 6)";
+                labelMid = "Monitor Impact (CCIS 3-6)";
+                labelLow = "Clear Impact (CCIS < 3)";
+            }
+
+            div.innerHTML = `
+                <div style="margin-bottom: 5px; font-weight: bold;">\u{1F5FA} ${title}</div>
+                <div class="legend-item"><span class="legend-color" style="background:#FF4B4B;"></span> ${labelHigh}</div>
+                <div class="legend-item"><span class="legend-color" style="background:#FFA500;"></span> ${labelMid}</div>
+                <div class="legend-item"><span class="legend-color" style="background:#00CC66;"></span> ${labelLow}</div>
+                ${overlayMode === "dual" ? '<div style="font-size:11px; color:#aaa; margin-top:3px;">* Marker size represents violations count</div>' : ''}
+                <hr>
+                <div class="legend-item"><span style="color:#0066FF;">━━━</span> Standard Route ({{ vehicle_type }})</div>
+                <div class="legend-item"><span style="color:#00CC66;">━━━</span> Optimized Route ({{ vehicle_type }})</div>
+            `;
+            return div;
+        };
+        legend.addTo(map);
+    </script>
+</body>
+</html>
