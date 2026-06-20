@@ -17,6 +17,7 @@ gridlock_data.csv
 data/raw/
 data/processed/
 utils/test_report.pdf
+Pitch_Deck.pdf
 
 # ML model serializations (large binary assets)
 models/*.pkl
