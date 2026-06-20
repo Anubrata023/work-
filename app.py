@@ -22,6 +22,21 @@ st.set_page_config(
 if 'page' not in st.session_state:
     st.session_state.page = 'landing'
 
+if 'route_calculated' not in st.session_state:
+    st.session_state['std_route'] = [[12.9716, 77.5946], [12.9719, 77.6012], [12.9734, 77.6115], [12.9755, 77.6254], [12.9783, 77.6408]]
+    st.session_state['opt_route'] = [[12.9716, 77.5946], [12.9654, 77.6012], [12.9602, 77.6185], [12.9682, 77.6322], [12.9783, 77.6408]]
+    st.session_state['std_time_min'] = 24.5
+    st.session_state['opt_time_min'] = 18.2
+    st.session_state['std_distance_m'] = 4900
+    st.session_state['opt_distance_m'] = 5200
+    st.session_state['time_saved'] = 6.3
+    st.session_state['vehicle_type'] = "Car"
+    st.session_state['std_streets'] = ["MG Road", "Kensington Road"]
+    st.session_state['opt_streets'] = ["Bypass Link", "Double Road Artery"]
+    st.session_state['opt_start'] = "MG Road"
+    st.session_state['opt_end'] = "Indiranagar"
+    st.session_state['route_calculated'] = True
+
 # --- 2. CUSTOM CSS INJECTION (MATCHING THE FIGMA HUD UX WITHOUT DROP-DOWN TEXT OVERRIDES) ---
 st.markdown("""
 <style>
