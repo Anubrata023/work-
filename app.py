@@ -663,68 +663,73 @@ with col_right:
             except Exception as e:
                 st.warning(f"Could not load historical trend: {e}")
 
-            # Cascade Propagation Model (GAMMA Day 2)
-            st.markdown("---")
-            st.subheader("\U0001F50A Congestion Cascade & Propagation")
-            show_cascade = st.checkbox("Enable Spatial Cascade Propagation", value=False, help="Predict how congestion spreads from this cell to neighboring cells.")
-            
-            if show_cascade:
-                cascade_steps = st.slider("Propagation Depth (Hops)", min_value=1, max_value=4, value=2, step=1)
-                cascade_attenuation = st.slider("Attenuation Factor (decay per hop)", min_value=0.1, max_value=0.9, value=0.6, step=0.1)
-                
-                # Cascade Ripple Notification UI Block (GAMMA Day 4 spec)
-                st.markdown(f"""
-                <div class="cascade-ripple-card">
-                    <h5 style="margin: 0 0 5px 0; color: #9B51E0;">&#128266; Congestion Cascade Ripple Active</h5>
-                    <p style="margin: 0; font-size: 0.9em; color: #DDD;">
-                        Modeling spillovers from <b>{location_name}</b>. Neighboring cells within <b>{cascade_steps} hop(s)</b> are monitored with <b>{cascade_attenuation} decay rate</b>.
-                    </p>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                try:
-                    from models.cascade_propagator import CascadePropagator
-                    propagator = CascadePropagator(ccis_df)
-                    cascade_list = propagator.predict_propagation(selected_zone, hour, steps=cascade_steps, attenuation=cascade_attenuation)
-                    
-                    if cascade_list:
-                        # Convert to DataFrame
-                        cascade_df = pd.DataFrame(cascade_list)
-                        
-                        # Store in session state for leaflet overlay
-                        st.session_state['cascade_points'] = cascade_list
-                        
-                        # Show interactive table of affected cells (sorting by step, CCIS)
-                        cascade_df_sorted = cascade_df.sort_values(by=['step', 'propagated_ccis'], ascending=[True, False])
-                        
-                        # Render spillover warning if there is any critical neighbor
-                        critical_spillovers = len(cascade_df_sorted[(cascade_df_sorted['risk_level'] == 'Critical Spillover') & (cascade_df_sorted['step'] > 0)])
-                        if critical_spillovers > 0:
-                            st.warning(f"\u26A0\ufe0f **Spillover Alert:** {critical_spillovers} neighboring cell(s) at critical risk of congestion spread.")
-                            
-                        display_cascade_cols = ['step', 'location', 'propagated_ccis', 'risk_level']
-                        display_cascade_names = {
-                            'step': 'Hop Distance',
-                            'location': 'Neighboring Location',
-                            'propagated_ccis': 'Predicted CCIS',
-                            'risk_level': 'Spillover Risk Level'
-                        }
-                        
-                        st.dataframe(
-                            cascade_df_sorted[display_cascade_cols].rename(columns=display_cascade_names),
-                            use_container_width=True
-                        )
-                    else:
-                        st.info("No cascade neighbors detected.")
-                except Exception as e:
-                    st.error(f"Error calculating cascade: {e}")
-            else:
-                if 'cascade_points' in st.session_state:
-                    del st.session_state['cascade_points']
-
             if persona == "BTP Mode":
+                # Cascade Propagation Model (GAMMA Day 2)
+                st.markdown("---")
+                st.subheader("\U0001F50A Congestion Cascade & Propagation")
+                show_cascade = st.checkbox("Enable Spatial Cascade Propagation", value=False, help="Predict how congestion spreads from this cell to neighboring cells.")
+                
+                if show_cascade:
+                    cascade_steps = st.slider("Propagation Depth (Hops)", min_value=1, max_value=4, value=2, step=1)
+                    cascade_attenuation = st.slider("Attenuation Factor (decay per hop)", min_value=0.1, max_value=0.9, value=0.6, step=0.1)
+                    
+                    # Cascade Ripple Notification UI Block (GAMMA Day 4 spec)
+                    st.markdown(f"""
+                    <div class="cascade-ripple-card">
+                        <h5 style="margin: 0 0 5px 0; color: #9B51E0;">&#128266; Congestion Cascade Ripple Active</h5>
+                        <p style="margin: 0; font-size: 0.9em; color: #DDD;">
+                            Modeling spillovers from <b>{location_name}</b>. Neighboring cells within <b>{cascade_steps} hop(s)</b> are monitored with <b>{cascade_attenuation} decay rate</b>.
+                        </p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    try:
+                        from models.cascade_propagator import CascadePropagator
+                        propagator = CascadePropagator(ccis_df)
+                        cascade_list = propagator.predict_propagation(selected_zone, hour, steps=cascade_steps, attenuation=cascade_attenuation)
+                        
+                        if cascade_list:
+                            # Convert to DataFrame
+                            cascade_df = pd.DataFrame(cascade_list)
+                            
+                            # Store in session state for leaflet overlay
+                            st.session_state['cascade_points'] = cascade_list
+                            
+                            # Show interactive table of affected cells (sorting by step, CCIS)
+                            cascade_df_sorted = cascade_df.sort_values(by=['step', 'propagated_ccis'], ascending=[True, False])
+                            
+                            # Render spillover warning if there is any critical neighbor
+                            critical_spillovers = len(cascade_df_sorted[(cascade_df_sorted['risk_level'] == 'Critical Spillover') & (cascade_df_sorted['step'] > 0)])
+                            if critical_spillovers > 0:
+                                st.warning(f"\u26A0\ufe0f **Spillover Alert:** {critical_spillovers} neighboring cell(s) at critical risk of congestion spread.")
+                                
+                            display_cascade_cols = ['step', 'location', 'propagated_ccis', 'risk_level']
+                            display_cascade_names = {
+                                'step': 'Hop Distance',
+                                'location': 'Neighboring Location',
+                                'propagated_ccis': 'Predicted CCIS',
+                                'risk_level': 'Spillover Risk Level'
+                            }
+                            
+                            st.dataframe(
+                                cascade_df_sorted[display_cascade_cols].rename(columns=display_cascade_names),
+                                use_container_width=True
+                            )
+                        else:
+                            st.info("No cascade neighbors detected.")
+                    except Exception as e:
+                        st.error(f"Error calculating cascade: {e}")
+                else:
+                    if 'cascade_points' in st.session_state:
+                        del st.session_state['cascade_points']
+
+                st.markdown("---")
                 if st.button("\U0001F6A8 Dispatch Proactive Enforcement Cobra Team", key="dispatch_btn"):
                     st.success(f"\U0001F6A8 Cobra team successfully dispatched to zone {selected_zone}! Priority enforcement action initiated.")
+            else:
+                # Flipkart mode - clear cascade points from map
+                if 'cascade_points' in st.session_state:
+                    del st.session_state['cascade_points']
     else:
         st.info("No zone data available.")
 

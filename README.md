@@ -13,12 +13,12 @@ The Sandbox Simulator is an interactive "What-If" planning workbench. Instead of
 
 #### 📈 What It Simulates
 1. **Projected Constraint Relief Rate (%):** Calculates how much illegal parking will decrease based on patrol friction curves:
-   $$\text{Relief} = \min\left(95.0\%, \min(82.5\%, \text{officers} \times 14.2) \times \text{duration\_modifier}\right)$$
+   $$\text{Relief} = \min(95.0, \min(82.5, \text{officers} \times 14.2) \times \text{duration\_modifier})$$
 2. **Estimated Commuter-Hours Saved (Hrs):** Uses **M/D/1 queuing theory** to calculate delay reductions.
 
 #### 🧮 Mathematical Model (Exponential Decay Capacity)
 To resolve the flat-line limitation where large violation clusters yielded $0.0\text{ Hrs}$ saved, we use a continuous exponential capacity decay model:
-$$\mu_{\text{actual}} = \mu_{\text{nominal}} \times \left(0.2 + 0.8 \times e^{-0.002 \times \text{violations}}\right)$$
+$$\mu_{\text{actual}} = \mu_{\text{nominal}} \times (0.2 + 0.8 \times e^{-0.02 \times \text{violations}})$$
 * **Arrival Rate ($\lambda$):** Poisson arrival rate proportional to typical hourly road volumes.
 * **Service Rate ($\mu$):** Deterministic capacity rate, which degrades down to a $20\%$ floor under massive parking obstructions.
 * **Average Delay ($W$):**
@@ -58,7 +58,7 @@ $$\mu_{\text{actual}} = \mu_{\text{nominal}} \times \left(0.2 + 0.8 \times e^{-0
 Provides predictive "What-If" enforcement simulation for target H3 cells and hours:
 * **Queuing Class:** Single-channel, Poisson arrivals, deterministic service times.
 * **Service Rate Capacity ($\mu$):** Diminishes exponentially under violation loads:
-  $$\mu = \mu_{\text{nominal}} \times \left(0.2 + 0.8 \times e^{-0.002 \times \text{violations}}\right)$$
+  $$\mu = \mu_{\text{nominal}} \times (0.2 + 0.8 \times e^{-0.02 \times \text{violations}})$$
 * **Steady-State Average Delay ($W$):**
   $$W = \frac{1}{\mu} + \frac{\lambda}{2\mu(\mu - \lambda)}$$
 * **Oversaturation Flow Approximation:** Used when $\lambda \ge 0.95 \mu$, modeling transient queue build-ups over the deployment window:

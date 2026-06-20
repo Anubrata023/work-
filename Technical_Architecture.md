@@ -82,7 +82,7 @@ graph TD
 ### 4. M/D/1 Commuter Delay Calculator (`models/hours_saved_calculator.py`)
 - Models traffic delay bottlenecks using deterministic service rates ($\mu$) and Poisson vehicle arrival rates ($\lambda$).
 - Exponential capacity decay degradation handles growing queues:
-  $$\mu = \mu_{	ext{nominal}} 	imes \left(0.2 + 0.8 	imes e^{-0.002 	imes 	ext{violations}}ight)$$
+  $$\mu = \mu_{	ext{nominal}} 	imes (0.2 + 0.8 	imes e^{-0.02 	imes 	ext{violations}})$$
 - Evaluates deployment impact by tracking delay variations.
 
 ---

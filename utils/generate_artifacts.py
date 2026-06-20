@@ -160,7 +160,7 @@ def build_pitch_deck_pdf(output_path):
     story.append(Spacer(1, 10))
     story.append(Paragraph("Models traffic delay using deterministic service and Poisson arrivals:", body_style))
     story.append(Paragraph("$$\\text{Delay } W = \\frac{1}{\\mu} + \\frac{\\lambda}{2\\mu(\\mu - \\lambda)}$$", highlight_style))
-    story.append(Paragraph("- **Nominal capacity (\\mu)** decays exponentially with violations: $\\mu_{\\text{actual}} = \\mu_{\\text{nominal}} \\times (0.2 + 0.8e^{-0.002 \\times \\text{violations}})$.", bullet_style))
+    story.append(Paragraph("- **Nominal capacity (\\mu)** decays exponentially with violations: $\\mu_{\\text{actual}} = \\mu_{\\text{nominal}} \\times (0.2 + 0.8e^{-0.02 \\times \\text{violations}})$.", bullet_style))
     story.append(Paragraph("- **Projections:** Sliding force size footprint dynamically estimates Commuter-Hours Saved, allowing BTP to allocate personnel to maximize relief.", bullet_style))
     story.append(PageBreak())
     
@@ -285,7 +285,7 @@ graph TD
 ### 4. M/D/1 Commuter Delay Calculator (`models/hours_saved_calculator.py`)
 - Models traffic delay bottlenecks using deterministic service rates ($\mu$) and Poisson vehicle arrival rates ($\lambda$).
 - Exponential capacity decay degradation handles growing queues:
-  $$\mu = \mu_{\text{nominal}} \times \left(0.2 + 0.8 \times e^{-0.002 \times \text{violations}}\right)$$
+  $$\mu = \mu_{\text{nominal}} \times (0.2 + 0.8 \times e^{-0.02 \times \text{violations}})$$
 - Evaluates deployment impact by tracking delay variations.
 
 ---

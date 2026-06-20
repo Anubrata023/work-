@@ -40,7 +40,7 @@ def calculate_hours_saved(violations_before, violations_after, baseline_count, d
     - arrival_rate (lambda) is based on hourly traffic volume.
     - service_rate (mu) is reduced by active violations.
     Uses an exponential decay model to simulate capacity degradation:
-      mu = mu_nominal * (0.2 + 0.8 * exp(-0.002 * violations))
+      mu = mu_nominal * (0.2 + 0.8 * exp(-0.02 * violations))
     """
     arrival_rate = float(hourly_volume)
     
@@ -49,8 +49,8 @@ def calculate_hours_saved(violations_before, violations_after, baseline_count, d
     
     # Exponential decay model for actual capacity (diminishing marginal reduction)
     # The capacity decays from 100% down to a floor of 20% under extreme violation loads.
-    service_rate_before = nominal_capacity * (0.2 + 0.8 * np.exp(-0.002 * float(violations_before)))
-    service_rate_after = nominal_capacity * (0.2 + 0.8 * np.exp(-0.002 * float(violations_after)))
+    service_rate_before = nominal_capacity * (0.2 + 0.8 * np.exp(-0.02 * float(violations_before)))
+    service_rate_after = nominal_capacity * (0.2 + 0.8 * np.exp(-0.02 * float(violations_after)))
     
     delay_before_hr = calculate_md1_delay(arrival_rate, service_rate_before, duration_hours)
     delay_after_hr = calculate_md1_delay(arrival_rate, service_rate_after, duration_hours)
