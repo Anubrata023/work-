@@ -53,6 +53,31 @@
             var ccis = point.ccis || 0;
             var violations = point.violation_count || 0;
             var speedDrop = point.speed_drop || 0;
+            var isCascade = point.is_cascade || false;
+
+            if (isCascade) {
+                // Purple color for cascade propagation, dashed lines
+                color = '#9B51E0';
+                radius = 10;
+                
+                L.circleMarker([point.lat, point.lon], {
+                    radius: radius,
+                    fillColor: color,
+                    color: '#9B51E0',
+                    weight: 2,
+                    dashArray: '4, 4',
+                    fillOpacity: 0.6
+                }).addTo(map).bindPopup(
+                    '<strong>\u{1F50A} Cascade Spillover</strong>' +
+                    '<br><strong>Location:</strong> ' + (point.location || 'Unknown') +
+                    '<br><strong>Hop Distance:</strong> ' + point.cascade_step + ' hop(s)' +
+                    '<br><strong>Predicted CCIS:</strong> ' + ccis.toFixed(1)
+                );
+                return;
+            }
+
+            var poi = point.poi || 0;
+            var isAnomaly = point.is_anomaly || false;
 
             if (overlayMode === "violations") {
                 color = getViolationColor(violations);
@@ -65,18 +90,23 @@
                 radius = 12;
             }
 
+            var popupContent = '<strong>\u{1F4CD} Location:</strong> ' + (point.location || 'Unknown') +
+                '<br><strong>\u{26A0}\u{FE0F} Violations:</strong> ' + violations + ' active cases' +
+                '<br><strong>\u{26A1} Speed Drop:</strong> ' + speedDrop.toFixed(1) + ' km/h reduction' +
+                '<br><strong>\u{1F4C8} CCIS Score:</strong> ' + ccis.toFixed(1) +
+                '<br><strong>\u{1F4A0} POI Score:</strong> ' + poi.toFixed(1) + ' / 10';
+                
+            if (isAnomaly) {
+                popupContent += '<br><span style="color: #FF4B4B; font-weight: bold;">&#9888; ANOMALY DETECTED</span>';
+            }
+
             L.circleMarker([point.lat, point.lon], {
                 radius: radius,
                 fillColor: color,
                 color: '#FFFFFF',
                 weight: 1.5,
                 fillOpacity: 0.8
-            }).addTo(map).bindPopup(
-                '<strong>\u{1F4CD} Location:</strong> ' + (point.location || 'Unknown') +
-                '<br><strong>\u{26A0}\u{FE0F} Violations:</strong> ' + violations + ' active cases' +
-                '<br><strong>\u{26A1} Speed Drop:</strong> ' + speedDrop.toFixed(1) + ' km/h reduction' +
-                '<br><strong>\u{1F4C8} CCIS Score:</strong> ' + ccis.toFixed(1)
-            );
+            }).addTo(map).bindPopup(popupContent);
         });
 
         // ----- ROUTES -----
@@ -160,6 +190,7 @@
                 <div class="legend-item"><span class="legend-color" style="background:#FF4B4B;"></span> ${labelHigh}</div>
                 <div class="legend-item"><span class="legend-color" style="background:#FFA500;"></span> ${labelMid}</div>
                 <div class="legend-item"><span class="legend-color" style="background:#00CC66;"></span> ${labelLow}</div>
+                <div class="legend-item"><span class="legend-color" style="background:#9B51E0; border: 2px dashed #FFFFFF;"></span> Cascade Spillover</div>
                 ${overlayMode === "dual" ? '<div style="font-size:11px; color:#aaa; margin-top:3px;">* Marker size represents violations count</div>' : ''}
                 <hr>
                 <div class="legend-item"><span style="color:#0066FF;">━━━</span> Standard Route ({{ vehicle_type }})</div>

@@ -1,0 +1,27 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDEs and editors
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Large datasets & raw data files
+gridlock_data.csv
+data/raw/
+data/processed/
+utils/test_report.pdf
+
+# ML model serializations (large binary assets)
+models/*.pkl
+models/*.csv
+utils/cache/
+
+# AI configs
+.ai/

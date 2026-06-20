@@ -68,6 +68,26 @@ st.markdown("""
     .zone-card strong {
         color: #FFFFFF;
     }
+    @keyframes ripple-glow {
+        0% {
+            box-shadow: 0 0 0 0 rgba(155, 81, 224, 0.4);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(155, 81, 224, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(155, 81, 224, 0);
+        }
+    }
+    .cascade-ripple-card {
+        background-color: rgba(155, 81, 224, 0.05);
+        border: 1px solid #9B51E0;
+        border-radius: 8px;
+        padding: 12px 15px;
+        margin-top: 10px;
+        margin-bottom: 15px;
+        animation: ripple-glow 2s infinite;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -75,20 +95,56 @@ st.markdown("""
 # DATA LOADING
 # -----------------------------------------------------------------------------
 @st.cache_data
-def load_ccis_data():
-    path = Path(__file__).parent / "data" / "processed" / "ccis_with_predictions.csv"
-    if not path.exists():
-        path = Path(__file__).parent / "data" / "processed" / "ccis_scores.csv"
-    if path.exists():
-        df = pd.read_csv(path)
-        if 'latitude' in df.columns and 'longitude' in df.columns:
-            df = df.rename(columns={'latitude': 'lat', 'longitude': 'lon'})
-        if 'h3_8' in df.columns and 'h3_cell' not in df.columns:
-            df = df.rename(columns={'h3_8': 'h3_cell'})
-        if 'location' not in df.columns:
-            df['location'] = df['h3_cell']
-        return df
-    return pd.DataFrame(columns=['h3_cell', 'hour', 'ccis', 'lat', 'lon', 'status', 'color', 'location'])
+def load_ccis_data_resolution(granularity_label):
+    res_map = {
+        "City View": 6,
+        "Zone View": 8,
+        "Street View": 9
+    }
+    res = res_map.get(granularity_label, 8)
+    
+    df = None
+    if res == 8:
+        # Load from pre-calculated CCIS scores if available
+        path = Path(__file__).parent / "data" / "processed" / "ccis_with_predictions.csv"
+        if not path.exists():
+            path = Path(__file__).parent / "data" / "processed" / "ccis_scores.csv"
+        if path.exists():
+            df = pd.read_csv(path)
+            if 'latitude' in df.columns and 'longitude' in df.columns:
+                df = df.rename(columns={'latitude': 'lat', 'longitude': 'lon'})
+            if 'h3_8' in df.columns and 'h3_cell' not in df.columns:
+                df = df.rename(columns={'h3_8': 'h3_cell'})
+            if 'location' not in df.columns:
+                df['location'] = df['h3_cell']
+                
+    if df is None:
+        try:
+            from utils.multi_granularity import recalculate_ccis_resolution
+            df = recalculate_ccis_resolution(res)
+            if 'latitude' in df.columns and 'longitude' in df.columns:
+                df = df.rename(columns={'latitude': 'lat', 'longitude': 'lon'})
+            if 'h3_cell' not in df.columns and f'h3_{res}' in df.columns:
+                df = df.rename(columns={f'h3_{res}': 'h3_cell'})
+            if 'location' not in df.columns:
+                df['location'] = df['h3_cell']
+        except Exception as e:
+            st.error(f"Error loading resolution data: {e}")
+            return pd.DataFrame(columns=['h3_cell', 'hour', 'ccis', 'lat', 'lon', 'status', 'color', 'location', 'poi', 'is_anomaly'])
+            
+    # Run Anomaly Detector to calculate POI and is_anomaly
+    try:
+        from utils.anomaly_detector import IsolationForestAnomalyDetector
+        detector = IsolationForestAnomalyDetector()
+        df = detector.fit_predict(df)
+    except Exception as e:
+        st.warning(f"Could not run anomaly detection: {e}")
+        if 'poi' not in df.columns:
+            df['poi'] = df['ccis'].clip(0.0, 10.0)
+        if 'is_anomaly' not in df.columns:
+            df['is_anomaly'] = False
+            
+    return df
 
 @st.cache_data
 def load_clustered_data():
@@ -105,7 +161,6 @@ def load_clustered_data():
 # -----------------------------------------------------------------------------
 # LOAD DATA
 # -----------------------------------------------------------------------------
-ccis_df = load_ccis_data()
 clustered_df = load_clustered_data()
 
 # -----------------------------------------------------------------------------
@@ -147,6 +202,8 @@ granularity = st.sidebar.selectbox(
     ["City View", "Zone View", "Street View"],
     index=1
 )
+
+ccis_df = load_ccis_data_resolution(granularity)
 
 # Map granularity to numerical zoom levels
 zoom_map = {
@@ -263,8 +320,27 @@ if not hour_data.empty and 'lat' in hour_data.columns and 'lon' in hour_data.col
             'ccis': float(row['ccis']),
             'violation_count': int(row.get('violation_count', 0)),
             'speed_drop': float(row.get('speed_drop', 0.0)),
-            'location': str(row.get('location', 'Unknown'))
+            'location': str(row.get('location', 'Unknown')),
+            'poi': float(row.get('poi', 0.0)),
+            'is_anomaly': bool(row.get('is_anomaly', False))
         })
+
+# Include Cascade Points if present in session state
+if st.session_state.get('cascade_points'):
+    for pt in st.session_state['cascade_points']:
+        if pt['step'] > 0:
+            data_points.append({
+                'lat': float(pt['lat']),
+                'lon': float(pt['lon']),
+                'ccis': float(pt['propagated_ccis']),
+                'violation_count': 0,
+                'speed_drop': 0.0,
+                'location': str(pt['location']),
+                'poi': 0.0,
+                'is_anomaly': False,
+                'is_cascade': True,
+                'cascade_step': int(pt['step'])
+            })
 
 if not data_points:
     data_points = [
@@ -534,6 +610,19 @@ with col_right:
                 "&#9989; Routine patrol check"
             )
 
+            # Anomaly Detection columns
+            poi_score = zone_row.get('poi', 0.0)
+            is_anomaly = zone_row.get('is_anomaly', False)
+            
+            anomaly_html = ""
+            if is_anomaly:
+                anomaly_html = f"""
+                <div style="background-color: rgba(255, 75, 75, 0.1); border: 1px solid #FF4B4B; padding: 10px; border-radius: 8px; margin-top: 10px;">
+                    <span style="color: #FF4B4B; font-weight: bold;">&#9888; ANOMALY ALERT:</span> 
+                    Statistically anomalous deviation from historical baseline activity detected at this hour!
+                </div>
+                """
+
             st.markdown(f"""
             <div style="background-color:#1A1C23; padding:15px; border-radius:10px; border-left:5px solid {zone_row['color']}; margin-bottom:10px;">
                 <p style="margin: 4px 0; color: #FFF;"><strong>&#128205; Full Location:</strong> {location_name}</p>
@@ -541,8 +630,10 @@ with col_right:
                 <p style="margin: 4px 0; color: #DDD;"><strong>&#9888; Illegal Parking Violations:</strong> {int(zone_row.get('violation_count', 0))} active cases</p>
                 <p style="margin: 4px 0; color: #DDD;"><strong>&#128201; Quantified Speed Drop:</strong> {zone_row.get('speed_drop', 0.0):.1f} km/h reduction</p>
                 <p style="margin: 4px 0; color: #DDD;"><strong>&#128680; Congestion Index (CCIS):</strong> {zone_row['ccis']:.1f}</p>
+                <p style="margin: 4px 0; color: #DDD;"><strong>&#128160; Parking Obstruction Index (POI):</strong> {poi_score:.1f} / 10</p>
                 <p style="margin: 4px 0; color: #DDD;"><strong>&#127919; Spillover Risk Profile:</strong> {risk_profile}</p>
                 <p style="margin: 4px 0; color: #FFF;"><strong>&#9889; Recommended Action:</strong> {rec_action}</p>
+                {anomaly_html}
             </div>
             """, unsafe_allow_html=True)
 
@@ -558,6 +649,78 @@ with col_right:
                 st.info(explanation)
             except Exception:
                 pass
+
+            # Historical Trend Panel (GAMMA Day 4)
+            try:
+                from utils.historical_trends import get_historical_trends
+                st.markdown("---")
+                st.subheader("\U0001F4C8 Historical CCIS Trend (Last 14 Days)")
+                trends_df = get_historical_trends(ccis_df, selected_zone, days=14)
+                if not trends_df.empty:
+                    st.line_chart(trends_df, x='Date', y='CCIS', color='#FF4B4B', height=200)
+                else:
+                    st.caption("No historical trend data available.")
+            except Exception as e:
+                st.warning(f"Could not load historical trend: {e}")
+
+            # Cascade Propagation Model (GAMMA Day 2)
+            st.markdown("---")
+            st.subheader("\U0001F50A Congestion Cascade & Propagation")
+            show_cascade = st.checkbox("Enable Spatial Cascade Propagation", value=False, help="Predict how congestion spreads from this cell to neighboring cells.")
+            
+            if show_cascade:
+                cascade_steps = st.slider("Propagation Depth (Hops)", min_value=1, max_value=4, value=2, step=1)
+                cascade_attenuation = st.slider("Attenuation Factor (decay per hop)", min_value=0.1, max_value=0.9, value=0.6, step=0.1)
+                
+                # Cascade Ripple Notification UI Block (GAMMA Day 4 spec)
+                st.markdown(f"""
+                <div class="cascade-ripple-card">
+                    <h5 style="margin: 0 0 5px 0; color: #9B51E0;">&#128266; Congestion Cascade Ripple Active</h5>
+                    <p style="margin: 0; font-size: 0.9em; color: #DDD;">
+                        Modeling spillovers from <b>{location_name}</b>. Neighboring cells within <b>{cascade_steps} hop(s)</b> are monitored with <b>{cascade_attenuation} decay rate</b>.
+                    </p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                try:
+                    from models.cascade_propagator import CascadePropagator
+                    propagator = CascadePropagator(ccis_df)
+                    cascade_list = propagator.predict_propagation(selected_zone, hour, steps=cascade_steps, attenuation=cascade_attenuation)
+                    
+                    if cascade_list:
+                        # Convert to DataFrame
+                        cascade_df = pd.DataFrame(cascade_list)
+                        
+                        # Store in session state for leaflet overlay
+                        st.session_state['cascade_points'] = cascade_list
+                        
+                        # Show interactive table of affected cells (sorting by step, CCIS)
+                        cascade_df_sorted = cascade_df.sort_values(by=['step', 'propagated_ccis'], ascending=[True, False])
+                        
+                        # Render spillover warning if there is any critical neighbor
+                        critical_spillovers = len(cascade_df_sorted[(cascade_df_sorted['risk_level'] == 'Critical Spillover') & (cascade_df_sorted['step'] > 0)])
+                        if critical_spillovers > 0:
+                            st.warning(f"\u26A0\ufe0f **Spillover Alert:** {critical_spillovers} neighboring cell(s) at critical risk of congestion spread.")
+                            
+                        display_cascade_cols = ['step', 'location', 'propagated_ccis', 'risk_level']
+                        display_cascade_names = {
+                            'step': 'Hop Distance',
+                            'location': 'Neighboring Location',
+                            'propagated_ccis': 'Predicted CCIS',
+                            'risk_level': 'Spillover Risk Level'
+                        }
+                        
+                        st.dataframe(
+                            cascade_df_sorted[display_cascade_cols].rename(columns=display_cascade_names),
+                            use_container_width=True
+                        )
+                    else:
+                        st.info("No cascade neighbors detected.")
+                except Exception as e:
+                    st.error(f"Error calculating cascade: {e}")
+            else:
+                if 'cascade_points' in st.session_state:
+                    del st.session_state['cascade_points']
 
             if persona == "BTP Mode":
                 if st.button("\U0001F6A8 Dispatch Proactive Enforcement Cobra Team", key="dispatch_btn"):
