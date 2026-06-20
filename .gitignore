@@ -15,13 +15,12 @@ __pycache__/
 # Large datasets & raw data files
 gridlock_data.csv
 data/raw/
-data/processed/
+data/processed/processed_data.csv
+data/processed/cleaned_data.csv
 utils/test_report.pdf
 Pitch_Deck.pdf
 
 # ML model serializations (large binary assets)
-models/*.pkl
-models/*.csv
 utils/cache/
 
 # AI configs
