@@ -174,6 +174,14 @@
             map.fitBounds(bounds, { padding: [50, 50] });
         }
 
+        // Fit bounds to data points if search query is active
+        var fitDataBounds = {{ fit_data_bounds }};
+        if (fitDataBounds && dataPoints && dataPoints.length > 0) {
+            var pts = dataPoints.map(function(pt) { return [pt.lat, pt.lon]; });
+            var bounds = L.latLngBounds(pts);
+            map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+        }
+
         // ----- LEGEND -----
         var legend = L.control({ position: 'bottomright' });
         legend.onAdd = function() {

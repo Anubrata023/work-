@@ -87,7 +87,7 @@ st.markdown("""
         margin-bottom: 15px;
     }
     
-    .hud-card p, .hud-card span, .hud-card strong, .hud-card div, .hud-card h5, .hud-card h6 {
+    .hud-card, .hud-card * {
         color: #E6EDF3 !important;
         font-family: 'Roboto Mono', monospace !important;
     }
@@ -176,12 +176,17 @@ st.markdown("""
     
     /* Status banner */
     .cascade-ripple-card {
-        background-color: rgba(155, 81, 224, 0.05);
+        background-color: #161B22;
         border: 1px solid #9B51E0;
         border-radius: 4px;
         padding: 12px 15px;
         margin-top: 10px;
         margin-bottom: 15px;
+    }
+    
+    .cascade-ripple-card, .cascade-ripple-card * {
+        color: #E6EDF3 !important;
+        font-family: 'Roboto Mono', monospace !important;
     }
     
     /* Command Footer dock */
@@ -191,6 +196,11 @@ st.markdown("""
         padding: 15px 30px;
         margin-top: 40px;
         border-radius: 4px;
+    }
+    
+    .footer-dock, .footer-dock * {
+        color: #8B949E !important;
+        font-family: 'Roboto Mono', monospace !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -507,8 +517,11 @@ if st.session_state.page == 'landing':
 # =====================================================================
 elif st.session_state.page == 'dashboard':
     
+    def clear_search():
+        st.session_state['search_input'] = ""
+
     # --- GLOBAL DASHBOARD HEADER & SEARCH ---
-    h_col1, h_col2, h_col3 = st.columns([1, 2, 1.5])
+    h_col1, h_col2, h_col3 = st.columns([1, 1.8, 1.7])
     with h_col1:
         st.markdown('<div class="btn-cyan-outline">', unsafe_allow_html=True)
         if st.button("EXIT TO PORTAL"):
@@ -518,7 +531,18 @@ elif st.session_state.page == 'dashboard':
     with h_col2:
         st.markdown("<h3 style='margin: 0; text-align: center; color: var(--text-color);'>VECTOR GRID</h3>", unsafe_allow_html=True)
     with h_col3:
-        search_query = st.text_input("", placeholder="SEARCH TARGET NEIGHBORHOOD (e.g., Indiranagar)", label_visibility="collapsed")
+        search_c1, search_c2 = st.columns([3.5, 1.2])
+        with search_c1:
+            search_query = st.text_input(
+                "", 
+                placeholder="SEARCH TARGET NEIGHBORHOOD (e.g., Indiranagar)", 
+                label_visibility="collapsed",
+                key="search_input"
+            )
+        with search_c2:
+            st.markdown('<div class="btn-cyan-outline" style="margin-top: 0px;">', unsafe_allow_html=True)
+            st.button("CLEAR", key="clear_search_btn", on_click=clear_search)
+            st.markdown('</div>', unsafe_allow_html=True)
         
     st.markdown("<hr style='border: 1px solid #30363D; margin-top: 10px; margin-bottom: 20px;'>", unsafe_allow_html=True)
 
@@ -764,6 +788,7 @@ elif st.session_state.page == 'dashboard':
                 map_html = map_html.replace('var optRoute = {{ opt_route|safe }};', 'var optRoute = [];')
                 map_html = map_html.replace('{{ vehicle_type }}', '"Car"')
                 map_html = map_html.replace('{{ zoom_level }}', str(map_zoom))
+                map_html = map_html.replace('{{ fit_data_bounds }}', 'true' if search_query else 'false')
                 
                 components.html(map_html, height=520)
             else:
@@ -1141,6 +1166,7 @@ elif st.session_state.page == 'dashboard':
                 map_html = map_html.replace('var optRoute = {{ opt_route|safe }};', f'var optRoute = {json.dumps(opt_route)};')
                 map_html = map_html.replace('{{ vehicle_type }}', f'"{vehicle_type_val}"')
                 map_html = map_html.replace('{{ zoom_level }}', '12')
+                map_html = map_html.replace('{{ fit_data_bounds }}', 'true' if search_query else 'false')
                 
                 components.html(map_html, height=500)
             else:
