@@ -198,14 +198,20 @@ def load_ccis_data_resolution(granularity_label):
         path = Path(__file__).parent / "data" / "processed" / "ccis_with_predictions.csv"
         if not path.exists():
             path = Path(__file__).parent / "data" / "processed" / "ccis_scores.csv"
-        if path.exists():
-            df = pd.read_csv(path)
-            if 'latitude' in df.columns and 'longitude' in df.columns:
-                df = df.rename(columns={'latitude': 'lat', 'longitude': 'lon'})
-            if 'h3_8' in df.columns and 'h3_cell' not in df.columns:
-                df = df.rename(columns={'h3_8': 'h3_cell'})
-            if 'location' not in df.columns:
-                df['location'] = df['h3_cell']
+    else:
+        path = Path(__file__).parent / "data" / "processed" / f"ccis_scores_res{res}.csv"
+        
+    if path.exists():
+        df = pd.read_csv(path)
+        if 'latitude' in df.columns and 'longitude' in df.columns:
+            df = df.rename(columns={'latitude': 'lat', 'longitude': 'lon'})
+        if 'h3_cell' not in df.columns:
+            for c in [f'h3_{res}', 'h3_8', 'h3_9', 'h3_6']:
+                if c in df.columns:
+                    df = df.rename(columns={c: 'h3_cell'})
+                    break
+        if 'location' not in df.columns:
+            df['location'] = df['h3_cell']
                 
     if df is None:
         try:
