@@ -134,7 +134,7 @@
                 opacity: 0.8,
                 dashArray: '10, 8',
                 smoothFactor: 1
-            }).addTo(map).bindPopup('🔵 Standard Route (Shortest Distance)');
+            }).addTo(map).bindPopup('🔵 Standard Route (Shortest Distance - Dashed Blue Line)');
         }
 
         // Optimized route (green, solid)
@@ -147,7 +147,7 @@
                 weight: 5,
                 opacity: 0.9,
                 smoothFactor: 1
-            }).addTo(map).bindPopup('🟢 Optimized Route (Avoids Congestion)');
+            }).addTo(map).bindPopup('🟢 Optimized Route (Avoids Congestion - Solid Green Line)');
         }
 
         // Start/End markers if routes exist
@@ -200,11 +200,11 @@
                 <div class="legend-item"><span class="legend-color" style="background:#FF4B4B;"></span> ${labelHigh}</div>
                 <div class="legend-item"><span class="legend-color" style="background:#FFA500;"></span> ${labelMid}</div>
                 <div class="legend-item"><span class="legend-color" style="background:#00CC66;"></span> ${labelLow}</div>
-                <div class="legend-item"><span class="legend-color" style="background:#9B51E0; border: 2px dashed #FFFFFF;"></span> Cascade Spillover</div>
+                <div class="legend-item"><span class="legend-color" style="background:#9B51E0; border: 2px dashed #9B51E0;"></span> Cascade Spillover</div>
                 ${overlayMode === "dual" ? '<div style="font-size:11px; color:#aaa; margin-top:3px;">* Marker size represents violations count</div>' : ''}
                 <hr>
-                <div class="legend-item"><span style="color:#0066FF;">━━━</span> Standard Route ({{ vehicle_type }})</div>
-                <div class="legend-item"><span style="color:#00CC66;">━━━</span> Optimized Route ({{ vehicle_type }})</div>
+                <div class="legend-item"><span style="border-top: 3px dashed #0066FF; width: 20px; display: inline-block; height: 0; vertical-align: middle; margin-right: 5px;"></span> Standard Route (Dashed Blue)</div>
+                <div class="legend-item"><span style="border-top: 3px solid #00CC66; width: 20px; display: inline-block; height: 0; vertical-align: middle; margin-right: 5px;"></span> Optimized Route (Solid Green)</div>
             `;
             return div;
         };

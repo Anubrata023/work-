@@ -22,6 +22,15 @@ st.set_page_config(
 if 'page' not in st.session_state:
     st.session_state.page = 'landing'
 
+if 'show_cascade' not in st.session_state:
+    st.session_state['show_cascade'] = True
+
+if 'cascade_steps' not in st.session_state:
+    st.session_state['cascade_steps'] = 2
+
+if 'cascade_attenuation' not in st.session_state:
+    st.session_state['cascade_attenuation'] = 0.6
+
 if 'route_calculated' not in st.session_state:
     st.session_state['std_route'] = [[12.9716, 77.5946], [12.9719, 77.6012], [12.9734, 77.6115], [12.9755, 77.6254], [12.9783, 77.6408]]
     st.session_state['opt_route'] = [[12.9716, 77.5946], [12.9654, 77.6012], [12.9602, 77.6185], [12.9682, 77.6322], [12.9783, 77.6408]]
@@ -50,18 +59,18 @@ st.markdown("""
     /* Style headers with clean tactical color */
     h1, h2, h3, h4, h5, h6 {
         font-family: 'Roboto Mono', monospace !important;
-        color: #E6EDF3 !important;
+        color: var(--text-color) !important;
     }
     
     /* Sidebar styling */
     section[data-testid="stSidebar"] {
-        background-color: #161B22 !important;
-        border-right: 1px solid #30363D !important;
+        background-color: var(--secondary-background-color) !important;
+        border-right: 1px solid rgba(128, 128, 128, 0.2) !important;
         padding-top: 20px;
     }
     
     section[data-testid="stSidebar"] hr {
-        border-color: #30363D !important;
+        border-color: rgba(128, 128, 128, 0.2) !important;
     }
     
     /* Monospace styling for widgets, but let native Streamlit handle text colors in dropdowns */
@@ -102,8 +111,8 @@ st.markdown("""
     /* Custom buttons styled exactly like Figma */
     .stButton>button {
         background-color: transparent !important;
-        border: 1px solid #30363D !important;
-        color: #E6EDF3 !important;
+        border: 1px solid var(--text-color) !important;
+        color: var(--text-color) !important;
         border-radius: 4px !important;
         font-weight: bold !important;
         width: 100% !important;
@@ -111,10 +120,12 @@ st.markdown("""
         transition: all 0.3s ease !important;
         font-size: 12px !important;
         font-family: 'Roboto Mono', monospace !important;
+        opacity: 0.85;
     }
     .stButton>button:hover {
-        background-color: rgba(230, 237, 243, 0.05) !important;
-        border-color: #E6EDF3 !important;
+        background-color: rgba(128, 128, 128, 0.15) !important;
+        border-color: var(--text-color) !important;
+        opacity: 1;
     }
     
     /* Solid Cyan button */
@@ -505,7 +516,7 @@ elif st.session_state.page == 'dashboard':
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
     with h_col2:
-        st.markdown("<h3 style='margin: 0; text-align: center; color: #FFF;'>VECTOR GRID</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='margin: 0; text-align: center; color: var(--text-color);'>VECTOR GRID</h3>", unsafe_allow_html=True)
     with h_col3:
         search_query = st.text_input("", placeholder="SEARCH TARGET NEIGHBORHOOD (e.g., Indiranagar)", label_visibility="collapsed")
         
@@ -674,7 +685,7 @@ elif st.session_state.page == 'dashboard':
     # BTP ENFORCEMENT MODE
     # -----------------------------------------------------------------
     if persona == "BTP Mode":
-        st.markdown("<h4 style='color: #8B949E; margin-bottom: 20px;'>TACTICAL COMMAND // BTP ENFORCEMENT COMMAND</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color: var(--text-color); opacity: 0.8; margin-bottom: 20px;'>TACTICAL COMMAND // BTP ENFORCEMENT COMMAND</h4>", unsafe_allow_html=True)
         
         # --- MAP CONTAINER IS RENDERED FULL-WIDTH AT THE TOP ---
         st.markdown(
@@ -985,11 +996,11 @@ elif st.session_state.page == 'dashboard':
         st.markdown("---")
         st.markdown("##### CONGESTION CASCADE & SPATIAL PROPAGATION")
         
-        with st.expander("Configure multi-hop gridlock propagation boundaries", expanded=False):
+        with st.expander("Configure multi-hop gridlock propagation boundaries", expanded=True):
             # Using st.session_state key bindings to calculate before map renders
-            st.checkbox("Activate Spatial Cascade Propagation", key="show_cascade")
-            st.slider("Propagation Depth Limit (Hops)", 1, 4, key="cascade_steps")
-            st.slider("Attenuation Wave Factor", 0.1, 0.9, key="cascade_attenuation")
+            st.checkbox("Activate Spatial Cascade Propagation", value=True, key="show_cascade")
+            st.slider("Propagation Depth Limit (Hops)", 1, 4, value=2, key="cascade_steps")
+            st.slider("Attenuation Wave Factor", 0.1, 0.9, value=0.6, key="cascade_attenuation")
             
             if st.session_state.get('show_cascade') and selected_zone_cell and not hour_data.empty:
                 hud_row = hour_data[hour_data['h3_cell'] == selected_zone_cell].iloc[0]
@@ -1030,7 +1041,7 @@ elif st.session_state.page == 'dashboard':
     # RENDER FLIPKART MODE VIEW
     # -----------------------------------------------------------------
     else:
-        st.markdown("<h4 style='color: #8B949E; margin-bottom: 20px;'>TACTICAL COMMAND // LOGISTICS DEPLOYMENT</h4>", unsafe_allow_html=True)
+        st.markdown("<h4 style='color: var(--text-color); opacity: 0.8; margin-bottom: 20px;'>TACTICAL COMMAND // LOGISTICS DEPLOYMENT</h4>", unsafe_allow_html=True)
         
         # Calculate logistics summary indexes (Restore exact calculations)
         if not hour_data.empty:
@@ -1243,9 +1254,9 @@ elif st.session_state.page == 'dashboard':
             d1, d2 = st.columns(2)
             with d1:
                 st.markdown(
-                    f"<p style='color: #8B949E; margin-bottom: 2px;'>Standard ETA</p>"
-                    f"<h3 style='color: #8B949E; margin-top: 0; font-weight: bold;'>{std_time:.1f}M</h3>"
-                    f"<p style='color: #00CC66; margin-bottom: 2px;'>Optimized ETA</p>"
+                    f"<p style='color: #0066FF; margin-bottom: 2px; font-weight: bold;'>Standard ETA [Dashed Blue]</p>"
+                    f"<h3 style='color: #0066FF; margin-top: 0; font-weight: bold;'>{std_time:.1f}M</h3>"
+                    f"<p style='color: #00CC66; margin-bottom: 2px; font-weight: bold;'>Optimized ETA [Solid Green]</p>"
                     f"<h2 style='color: #00CC66; margin-top: 0; font-weight: bold;'>{opt_time:.1f}M</h2>",
                     unsafe_allow_html=True
                 )
@@ -1267,8 +1278,11 @@ elif st.session_state.page == 'dashboard':
             opt_streets = st.session_state.get('opt_streets', [])
             if std_streets or opt_streets:
                 st.markdown("<hr style='border: 1px dashed #30363D; margin: 10px 0;'>", unsafe_allow_html=True)
-                st.markdown(f"<p style='font-size: 11px; margin: 3px 0;'>Standard Route: via {', '.join(std_streets) if std_streets else 'Direct corridor'}</p>", unsafe_allow_html=True)
-                st.markdown(f"<p style='font-size: 11px; margin: 3px 0;'>Optimized Route: via {', '.join(opt_streets) if opt_streets else 'Avoiding bottlenecks'}</p>", unsafe_allow_html=True)
+                st.markdown(
+                    f"<p style='font-size: 11px; margin: 3px 0;'><b><span style='color: #0066FF;'>🔵 Standard Route (Dashed Blue)</span></b>: via {', '.join(std_streets) if std_streets else 'Direct corridor'}</p>"
+                    f"<p style='font-size: 11px; margin: 3px 0;'><b><span style='color: #00CC66;'>🟢 Optimized Route (Solid Green)</span></b>: via {', '.join(opt_streets) if opt_streets else 'Avoiding bottlenecks'}</p>",
+                    unsafe_allow_html=True
+                )
                 
             # Fuel saved summary details
             fuel_saved = (st.session_state.get('std_distance_m', 0.0) - st.session_state.get('opt_distance_m', 0.0)) / 1000 * 0.08
