@@ -60,7 +60,7 @@ def generate_enforcement_report(ccis_df, hotspots, date_str=None):
     story = []
 
     # Title
-    story.append(Paragraph("GRIDLOCK ZERO", title_style))
+    story.append(Paragraph("VECTOR GRID", title_style))
     story.append(Paragraph(f"Enforcement Report - {date_str}", styles['Heading2']))
     story.append(Spacer(1, 0.25 * inch))
 
@@ -116,7 +116,7 @@ def generate_enforcement_report(ccis_df, hotspots, date_str=None):
 
     # Footer
     story.append(Paragraph("--- End of Report ---", styles['Normal']))
-    story.append(Paragraph("GridLock Zero © 2026 | Data sourced from BTP", styles['Normal']))
+    story.append(Paragraph("VECTOR GRID © 2026 | Data sourced from BTP", styles['Normal']))
 
     doc.build(story)
 

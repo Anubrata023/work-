@@ -1,5 +1,5 @@
 """
-GridLock Zero Artifact Generator
+VECTOR GRID Artifact Generator
 Compiles the Pitch Deck PDF (10 slides) using ReportLab and writes the Technical Architecture Markdown document.
 """
 import os
@@ -84,14 +84,14 @@ def build_pitch_deck_pdf(output_path):
         # Footer
         canvas.setFont("Helvetica-Bold", 9)
         canvas.setFillColor(colors.HexColor("#888888"))
-        canvas.drawString(30, 20, "GridLock Zero \u2014 Confidential Pitch Deck")
+        canvas.drawString(30, 20, "VECTOR GRID \u2014 Confidential Pitch Deck")
         canvas.drawRightString(doc.pagesize[0] - 30, 20, f"Slide {doc.page} of 10")
         canvas.restoreState()
 
     story = []
     
     # ------------------ SLIDE 1 ------------------
-    story.append(Paragraph("GRIDLOCK ZERO", subtitle_style))
+    story.append(Paragraph("VECTOR GRID", subtitle_style))
     story.append(Paragraph("Strategic Parking Intelligence & Enforcement prioritization", title_style))
     story.append(Spacer(1, 40))
     story.append(Paragraph("<b>Presenter:</b> Flipkart Hackathon Team ALPHA", body_style))
@@ -112,7 +112,7 @@ def build_pitch_deck_pdf(output_path):
     
     # ------------------ SLIDE 3 ------------------
     story.append(Paragraph("THE SOLUTION", subtitle_style))
-    story.append(Paragraph("GridLock Zero: Core Analytics Platform", title_style))
+    story.append(Paragraph("VECTOR GRID: Core Analytics Platform", title_style))
     story.append(Spacer(1, 15))
     story.append(Paragraph("An integrated optimization platform combining police enforcement queues with logistics dispatch:", body_style))
     story.append(Paragraph("- <b>CCIS Core:</b> Quantifying spatial threat profiles using physical metrics rather than arbitrary weights.", bullet_style))
@@ -176,7 +176,7 @@ def build_pitch_deck_pdf(output_path):
     
     # ------------------ SLIDE 9 ------------------
     story.append(Paragraph("BUSINESS IMPACT", subtitle_style))
-    story.append(Paragraph("GridLock Zero: Quantified Value Proposition", title_style))
+    story.append(Paragraph("VECTOR GRID: Quantified Value Proposition", title_style))
     story.append(Spacer(1, 15))
     story.append(Paragraph("- <b>BTP Enforcement:</b> 30% faster congestion clearing through prioritized queue (EPQ) proactive dispatch.", bullet_style))
     story.append(Paragraph("- <b>Flipkart Delivery:</b> Estimated 25% reduction in delivery delay, saving thousands of customer wait hours.", bullet_style))
@@ -187,13 +187,13 @@ def build_pitch_deck_pdf(output_path):
     
     # ------------------ SLIDE 10 ------------------
     story.append(Paragraph("FUTURE ROADMAP", subtitle_style))
-    story.append(Paragraph("Next Horizon for GridLock Zero", title_style))
+    story.append(Paragraph("Next Horizon for VECTOR GRID", title_style))
     story.append(Spacer(1, 15))
     story.append(Paragraph("- <b>Live GPS Telemetry:</b> Inject real-time bus and auto-rickshaw GPS feeds directly into the aggregation engine.", bullet_style))
     story.append(Paragraph("- <b>Enforcement Camera APIs:</b> Connect BTP traffic cameras with automatic license plate recognition to trigger ticket dispatches.", bullet_style))
     story.append(Paragraph("- <b>Autonomous Route Feeds:</b> Connect directly into Flipkart's main routing engine APIs.", bullet_style))
     story.append(Spacer(1, 20))
-    story.append(Paragraph("<b>GRIDLOCK ZERO \u2014 THE FUTURE OF SMART ENFORCEMENT & LOGISTICS</b>", highlight_style))
+    story.append(Paragraph("<b>VECTOR GRID \u2014 THE FUTURE OF SMART ENFORCEMENT & LOGISTICS</b>", highlight_style))
     
     doc.build(story, onFirstPage=on_page_callback, onLaterPages=on_page_callback)
     print("Pitch Deck PDF generated successfully.")
@@ -201,9 +201,9 @@ def build_pitch_deck_pdf(output_path):
 def build_architecture_md(output_path):
     print(f"Generating Technical Architecture Markdown at {output_path}...")
     
-    content = """# GridLock Zero - Technical Architecture Diagram & Specifications
+    content = """# VECTOR GRID - Technical Architecture Diagram & Specifications
 
-This document outlines the system architecture, processing pipelines, and data flow layers for GridLock Zero, built for the Flipkart GridLock Hackathon.
+This document outlines the system architecture, processing pipelines, and data flow layers for VECTOR GRID, built for the Flipkart GridLock Hackathon.
 
 ---
 

@@ -1,6 +1,6 @@
-# GridLock Zero - Parking Intelligence & Enforcement Prioritization
+# VECTOR GRID - Parking Intelligence & Enforcement Prioritization
 
-GridLock Zero is an analytical decision dashboard designed for smart city enforcement (Bengaluru Traffic Police) and logistics dispatch (Flipkart Logistics). It identifies illegal parking hotspots, calculates traffic congestion impact, models spatial spillovers, and simulates tactical enforcement campaigns before teams hit the field.
+VECTOR GRID is an analytical decision dashboard designed for smart city enforcement (Bengaluru Traffic Police) and logistics dispatch (Flipkart Logistics). It identifies illegal parking hotspots, calculates traffic congestion impact, models spatial spillovers, and simulates tactical enforcement campaigns before teams hit the field.
 
 ---
 

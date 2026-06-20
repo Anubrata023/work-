@@ -1,6 +1,6 @@
-# GridLock Zero - Technical Architecture Diagram & Specifications
+# VECTOR GRID - Technical Architecture Diagram & Specifications
 
-This document outlines the system architecture, processing pipelines, and data flow layers for GridLock Zero, built for the Flipkart GridLock Hackathon.
+This document outlines the system architecture, processing pipelines, and data flow layers for VECTOR GRID, built for the Flipkart GridLock Hackathon.
 
 ---
 

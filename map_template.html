@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>GridLock Zero - Map</title>
+    <title>VECTOR GRID - Map</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
@@ -90,6 +90,13 @@
                 radius = 12;
             }
 
+            var strokeColor = '#FFFFFF';
+            var strokeWidth = 1.5;
+            if (point.cluster !== undefined && point.cluster !== -1) {
+                strokeColor = '#00E5FF';
+                strokeWidth = 3;
+            }
+
             var popupContent = '<strong>\u{1F4CD} Location:</strong> ' + (point.location || 'Unknown') +
                 '<br><strong>\u{26A0}\u{FE0F} Violations:</strong> ' + violations + ' active cases' +
                 '<br><strong>\u{26A1} Speed Drop:</strong> ' + speedDrop.toFixed(1) + ' km/h reduction' +
@@ -99,12 +106,15 @@
             if (isAnomaly) {
                 popupContent += '<br><span style="color: #FF4B4B; font-weight: bold;">&#9888; ANOMALY DETECTED</span>';
             }
+            if (point.cluster !== undefined && point.cluster !== -1) {
+                popupContent += '<br><span style="color: #00E5FF; font-weight: bold;">⬢ Hotspot Cluster #' + point.cluster + '</span>';
+            }
 
             L.circleMarker([point.lat, point.lon], {
                 radius: radius,
                 fillColor: color,
-                color: '#FFFFFF',
-                weight: 1.5,
+                color: strokeColor,
+                weight: strokeWidth,
                 fillOpacity: 0.8
             }).addTo(map).bindPopup(popupContent);
         });
