@@ -981,11 +981,7 @@ elif st.session_state.page == 'dashboard':
                         unsafe_allow_html=True
                     )
                 
-                st.markdown("<br>", unsafe_allow_html=True)
-                st.markdown('<div class="btn-solid-red">', unsafe_allow_html=True)
-                if st.button("DISPATCH PROACTIVE COBRA TEAM", use_container_width=True):
-                    st.success(f"Cobra Team dispatched to Sector: {hud_row['location']} ({hud_row['h3_cell']})")
-                st.markdown('</div>', unsafe_allow_html=True)
+
             else:
                 st.info("Select parameters to inspect zone.")
             st.markdown('</div>', unsafe_allow_html=True) # Close HUD card
@@ -1062,6 +1058,15 @@ elif st.session_state.page == 'dashboard':
                     )
             else:
                 st.info("Check 'Activate Spatial Cascade Propagation' to start modeling congestion spillovers.")
+
+        # Dispatch Button below Congestion Cascade tab
+        if selected_zone_cell and not hour_data.empty:
+            hud_row = hour_data[hour_data['h3_cell'] == selected_zone_cell].iloc[0]
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown('<div class="btn-solid-red">', unsafe_allow_html=True)
+            if st.button("DISPATCH PROACTIVE COBRA TEAM", key="cascade_cobra_dispatch", use_container_width=True):
+                st.success(f"Cobra Team dispatched to Sector: {hud_row['location']} ({hud_row['h3_cell']})")
+            st.markdown('</div>', unsafe_allow_html=True)
 
     # -----------------------------------------------------------------
     # RENDER FLIPKART MODE VIEW
