@@ -109,7 +109,7 @@ st.markdown("""
     }
     
     /* Custom buttons styled exactly like Figma */
-    .stButton>button {
+    .stButton button {
         background-color: transparent !important;
         border: 1px solid var(--text-color) !important;
         color: var(--text-color) !important;
@@ -122,53 +122,54 @@ st.markdown("""
         font-family: 'Roboto Mono', monospace !important;
         opacity: 0.85;
     }
-    .stButton>button:hover {
+    .stButton button:hover {
         background-color: rgba(128, 128, 128, 0.15) !important;
         border-color: var(--text-color) !important;
         opacity: 1;
     }
     
     /* Solid Cyan button */
-    .btn-solid>div>button {
+    .btn-solid button, div:has(.btn-solid) + div button {
         background-color: #00E5FF !important;
         color: #0D1117 !important;
         border: none !important;
     }
-    .btn-solid>div>button:hover {
+    .btn-solid button:hover, div:has(.btn-solid) + div button:hover {
         background-color: #00B3CC !important;
         box-shadow: 0 0 15px rgba(0, 229, 255, 0.4) !important;
         color: #0D1117 !important;
     }
     
     /* Cyan outline button */
-    .btn-cyan-outline>div>button {
+    .btn-cyan-outline button, div:has(.btn-cyan-outline) + div button {
         border: 1px solid #00E5FF !important;
         color: #00E5FF !important;
+        background-color: transparent !important;
     }
-    .btn-cyan-outline>div>button:hover {
+    .btn-cyan-outline button:hover, div:has(.btn-cyan-outline) + div button:hover {
         background-color: rgba(0, 229, 255, 0.1) !important;
         color: #00E5FF !important;
     }
     
     /* Solid Red button */
-    .btn-solid-red>div>button {
+    .btn-solid-red button, div:has(.btn-solid-red) + div button {
         background-color: #FF1744 !important;
         color: #FFFFFF !important;
         border: none !important;
     }
-    .btn-solid-red>div>button:hover {
+    .btn-solid-red button:hover, div:has(.btn-solid-red) + div button:hover {
         background-color: #CC1236 !important;
         box-shadow: 0 0 15px rgba(255, 23, 68, 0.4) !important;
         color: #FFFFFF !important;
     }
     
     /* Solid Green button */
-    .btn-solid-green>div>button {
+    .btn-solid-green button, div:has(.btn-solid-green) + div button {
         background-color: #00CC66 !important;
         color: #0D1117 !important;
         border: none !important;
     }
-    .btn-solid-green>div>button:hover {
+    .btn-solid-green button:hover, div:has(.btn-solid-green) + div button:hover {
         background-color: #00994C !important;
         box-shadow: 0 0 15px rgba(0, 204, 102, 0.4) !important;
         color: #0D1117 !important;
