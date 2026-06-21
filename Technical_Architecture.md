@@ -6,6 +6,8 @@ This document outlines the system architecture, processing pipelines, and data f
 
 ## 🗺️ System Architecture Diagram
 
+![System Architecture Diagram](screenshots/system_architecture_diagram.png)
+
 ```mermaid
 graph TD
     %% Input Layer
@@ -102,3 +104,20 @@ graph TD
 ### 2. Historical Trends (`historical_trends.py`)
 - Standardizes dynamic date mapping to the H3 cell's average daily profile.
 - Restructures baseline distributions to simulate visual chronological trends.
+
+---
+
+## 🧠 Core System Mind Map
+This mind map outlines the major modules and technologies integrated into the Vector Grid platform.
+
+![Vector Grid Mind Map](screenshots/vector_grid_mindmap.png)
+
+---
+
+## 🔄 System Flowcharts & Decision Loops
+
+### 1. Enforcement Simulator Decision Flow (M/D/1 Queuing Sandbox)
+![Queuing Sandbox Flowchart](screenshots/sandbox_queuing_flowchart.png)
+
+### 2. Congestion-Aware Routing Pipeline (Flipkart Mode)
+![Logistics Routing Flowchart](screenshots/logistics_routing_flowchart.png)
