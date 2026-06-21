@@ -73,18 +73,18 @@ graph TD
 - Unsupervised anomaly model:
   - **Contamination level:** 10%.
   - **Features:** `violation_count`, `speed_drop`, `ccis`, and `baseline_deviation`.
-  - **POI score formula:** $	ext{POI} = 	ext{clip}(	ext{CCIS} 	imes 0.6 + 	ext{anomaly\_score\_normalized} 	imes 4.0, 0, 10)$.
+  - **POI score formula:** $$\text{POI} = \text{clip}(\text{CCIS} \times 0.6 + \text{anomaly-score-normalized} \times 4.0, 0, 10)$$.
 
 ### 3. Cascade Propagation Spillover Model (`models/cascade_propagator.py`)
 - Traces multi-hop spillover of gridlock cells outward into the surrounding street network.
 - Computes decay rings dynamically:
-  $$	ext{Propagated CCIS}_k = 	ext{Base CCIS} 	imes lpha^k$$
+  $$\text{Propagated CCIS}_k = \text{Base CCIS} \times \alpha^k$$
 - Simulates network bottlenecks and overlays spillovers as purple rings.
 
 ### 4. M/D/1 Commuter Delay Calculator (`models/hours_saved_calculator.py`)
 - Models traffic delay bottlenecks using deterministic service rates ($\mu$) and Poisson vehicle arrival rates ($\lambda$).
 - Exponential capacity decay degradation handles growing queues:
-  $$\mu = \mu_{	ext{nominal}} 	imes (0.2 + 0.8 	imes e^{-0.02 	imes 	ext{violations}})$$
+  $$\mu = \mu_{\text{nominal}} \times (0.2 + 0.8 \times e^{-0.02 \times \text{violations}})$$
 - Evaluates deployment impact by tracking delay variations.
 
 ---

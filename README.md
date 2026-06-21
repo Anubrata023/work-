@@ -13,7 +13,7 @@ The Sandbox Simulator is an interactive "What-If" planning workbench. Instead of
 
 #### 📈 What It Simulates
 1. **Projected Constraint Relief Rate (%):** Calculates how much illegal parking will decrease based on patrol friction curves:
-   $$\text{Relief} = \min(95.0, \min(82.5, \text{officers} \times 14.2) \times \text{duration\_modifier})$$
+   $$\text{Relief} = \min(95.0, \min(82.5, \text{officers} \times 14.2) \times \text{duration-modifier})$$
 2. **Estimated Commuter-Hours Saved (Hrs):** Uses **M/D/1 queuing theory** to calculate delay reductions.
 
 #### 🧮 Mathematical Model (Exponential Decay Capacity)
@@ -29,7 +29,7 @@ $$\mu_{\text{actual}} = \mu_{\text{nominal}} \times (0.2 + 0.8 \times e^{-0.02 \
 * **Module:** `utils/anomaly_detector.py`
 * Trains an unsupervised `IsolationForest` model dynamically on active violations, speed drop, CCIS, and deviations from baseline.
 * Computes the **Parking Obstruction Index (POI)** on a 0–10 scale:
-  $$\text{POI} = \text{clip}(\text{CCIS} \times 0.6 + \text{anomaly\_score\_normalized} \times 4.0, 0, 10)$$
+  $$\text{POI} = \text{clip}(\text{CCIS} \times 0.6 + \text{anomaly-score-normalized} \times 4.0, 0, 10)$$
 * Triggers red banner **Anomaly Alerts** in the dashboard and Leaflet popups when deviations from historical Day-of-Week averages are detected.
 
 ### 3. Cascade Propagation Spillover Model
